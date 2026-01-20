@@ -2,37 +2,51 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
+	"strings"
+	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
-// golang.org/x/net/html
-// github.com/PuerkitoBio/goquery
-// github.com/gocolly/colly
-
 func main() {
-	fmt.Println("Web Scraper")
-	args := os.Args
-	if len(args) == 1 {
-		fmt.Printf("No URL provided!")
-		return
-	}
-
-	url := args[1]
-	resp, err := http.Get(url)
+	url := "https://engineering.fb.com/category/open-source/"
+	resp, err := parseURL(url)
 	if err != nil {
-		fmt.Printf("Error fetching url: %v\n", err)
+		fmt.Printf("Error fetching data: %v\n", err)
 		return
 	}
 
 	defer resp.Body.Close()
 
-	data, err := io.ReadAll(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		fmt.Printf("Error reading response: %v\n", err)
+		fmt.Printf("Error parsing the document: %v\n", err)
 		return
 	}
 
-	fmt.Println("Response body:\n", string(data))
+	doc.Find(".article-grids .row .article-grid").Each(func(i int, s *goquery.Selection) {
+		article := s.Find("article")
+		var title, url string
+
+		article.Find("a").Each(func(i int, s *goquery.Selection) {
+			if i == 0 {
+				href, _ := s.Attr("href")
+				url = href
+				return
+			}
+
+			title = strings.TrimSpace(s.Text())
+		})
+
+		timeStr := article.Find("time").Text()
+		t, _ := time.Parse("2006-01-02 15:04:05", timeStr)
+
+		fmt.Printf("Title: %s\nURL: %s\nCreated: %v\n\n", title, url, t)
+	})
+
+}
+
+func parseURL(url string) (*http.Response, error) {
+	return http.Get(url)
 }

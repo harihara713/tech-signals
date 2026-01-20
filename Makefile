@@ -1,5 +1,5 @@
 run: build
-	./bin/goscrape
+	./bin/techsignals
 
 build: 
-	go build -o ./bin/goscrape .
+	go build -o ./bin/techsignals .
