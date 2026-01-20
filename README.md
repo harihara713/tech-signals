@@ -1,2 +1,2 @@
 # Tech Signals
-This a command line Web Scraper, Which takes url as an argument and show the output in command line.
+A command line web scraper, which scrape the trending engineering blogs from sites like Meta, Google, Amazon, Twitter, etc. 
