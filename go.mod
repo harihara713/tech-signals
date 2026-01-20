@@ -1,4 +1,4 @@
-module github.com/harihara713/goscrape
+module github.com/harihara713/tech-signals
 
 go 1.25.5
 

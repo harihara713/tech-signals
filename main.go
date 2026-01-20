@@ -2,51 +2,31 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"log/slog"
 	"strings"
-	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/harihara713/tech-signals/article"
+	"github.com/harihara713/tech-signals/source"
 )
 
 func main() {
-	url := "https://engineering.fb.com/category/open-source/"
-	resp, err := parseURL(url)
-	if err != nil {
-		fmt.Printf("Error fetching data: %v\n", err)
-		return
+	sources := []source.Source{
+		source.Meta{},
 	}
 
-	defer resp.Body.Close()
+	artStore := article.NewArticleStore()
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		fmt.Printf("Error parsing the document: %v\n", err)
-		return
+	for _, s := range sources {
+		if err := s.Fetch(artStore); err != nil {
+			slog.Error("Error fetching articles", "err", err)
+		}
 	}
 
-	doc.Find(".article-grids .row .article-grid").Each(func(i int, s *goquery.Selection) {
-		article := s.Find("article")
-		var title, url string
+	// show
+	fmt.Println("\n" + strings.Repeat("=", 100) + "\n")
+	fmt.Printf("Total %d articles found\n", len(*artStore))
 
-		article.Find("a").Each(func(i int, s *goquery.Selection) {
-			if i == 0 {
-				href, _ := s.Attr("href")
-				url = href
-				return
-			}
-
-			title = strings.TrimSpace(s.Text())
-		})
-
-		timeStr := article.Find("time").Text()
-		t, _ := time.Parse("2006-01-02 15:04:05", timeStr)
-
-		fmt.Printf("Title: %s\nURL: %s\nCreated: %v\n\n", title, url, t)
-	})
-
-}
-
-func parseURL(url string) (*http.Response, error) {
-	return http.Get(url)
+	for _, a := range *artStore {
+		fmt.Printf("%#v\n", a)
+	}
 }

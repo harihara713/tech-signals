@@ -1,6 +1,6 @@
 package source
 
-import "github.com/harihara713/goscrape/article"
+import "github.com/harihara713/tech-signals/article"
 
 type Source interface {
 	Name() string
