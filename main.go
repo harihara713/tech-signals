@@ -25,9 +25,9 @@ func main() {
 
 	// show
 	fmt.Println("\n" + strings.Repeat("=", 100) + "\n")
-	fmt.Printf("Total %d articles found\n", len(*artStore))
+	fmt.Printf("Total %d articles found\n\n", len(*artStore))
 
 	for _, a := range *artStore {
-		fmt.Printf("%+v\n", a)
+		fmt.Printf("%+v\n", a.Title)
 	}
 }

@@ -54,7 +54,12 @@ func (m Meta) Fetch(as *article.ArticleStore) error {
 		})
 
 		timeStr := articleTag.Find("time").Text()
-		//TODO: Transform the data in Jan 02, 2006 format first
+		timeStr, err = transformToTimeString(timeStr)
+		if err != nil {
+			slog.Error("Meta: Error transform to time string", "err", err)
+			return
+		}
+
 		t, err := time.Parse("Jan 02, 2006", timeStr)
 		if err != nil {
 			slog.Error("Meta: Error Parsing time", "err", err)

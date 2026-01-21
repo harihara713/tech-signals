@@ -50,8 +50,14 @@ func (g Google) Fetch(as *article.ArticleStore) error {
 			art.Tags = append(art.Tags, split[1])
 		}
 
-		// split[0] is time string before parsing the time make it in the 'Jan 02, 2006' format
-		t, err := time.Parse("Jan 02, 2006", split[0])
+		timeStr, err := transformToTimeString(split[0])
+		if err != nil {
+			slog.Error("Google: Error transform to time string", "err", err)
+			return
+		}
+
+		t, err := time.Parse("Jan 02, 2006", timeStr)
+		fmt.Println("Time string", split[0])
 		if err != nil {
 			slog.Error("Google: Error Parsing time", "err", err)
 			return
