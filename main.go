@@ -12,6 +12,7 @@ import (
 func main() {
 	sources := []source.Source{
 		source.Meta{},
+		source.Google{},
 	}
 
 	artStore := article.NewArticleStore()
@@ -27,6 +28,6 @@ func main() {
 	fmt.Printf("Total %d articles found\n", len(*artStore))
 
 	for _, a := range *artStore {
-		fmt.Printf("%#v\n", a)
+		fmt.Printf("%+v\n", a)
 	}
 }

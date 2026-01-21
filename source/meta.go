@@ -30,7 +30,7 @@ func (m Meta) Fetch(as *article.ArticleStore) error {
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Error("Meta: Error response", "status", resp.StatusCode)
-		return fmt.Errorf("response status: '%d'", resp.StatusCode)
+		return fmt.Errorf("Meta blogs response status: '%d'", resp.StatusCode)
 	}
 	// extract the articles details
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
@@ -54,6 +54,7 @@ func (m Meta) Fetch(as *article.ArticleStore) error {
 		})
 
 		timeStr := articleTag.Find("time").Text()
+		//TODO: Transform the data in Jan 02, 2006 format first
 		t, err := time.Parse("Jan 02, 2006", timeStr)
 		if err != nil {
 			slog.Error("Meta: Error Parsing time", "err", err)
