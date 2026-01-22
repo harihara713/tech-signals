@@ -1,6 +1,8 @@
 package source
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTransformToTimeString(t *testing.T) {
 	tests := []struct {

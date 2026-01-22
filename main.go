@@ -13,6 +13,7 @@ func main() {
 	sources := []source.Source{
 		source.Meta{},
 		source.Google{},
+		source.Amazon{},
 	}
 
 	artStore := article.NewArticleStore()

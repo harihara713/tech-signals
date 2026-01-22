@@ -57,7 +57,6 @@ func (g Google) Fetch(as *article.ArticleStore) error {
 		}
 
 		t, err := time.Parse("Jan 02, 2006", timeStr)
-		fmt.Println("Time string", split[0])
 		if err != nil {
 			slog.Error("Google: Error Parsing time", "err", err)
 			return
