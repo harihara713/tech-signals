@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -41,10 +42,10 @@ func (s Stripe) Fetch(as *article.ArticleStore) error {
 	doc.Find(".BlogIndexGridSection__layout article").Each(func(i int, sl *goquery.Selection) {
 		art := article.Article{}
 
-		art.Title = sl.Find("h1").Text()
+		art.Title = strings.TrimSpace(sl.Find("h1").Text())
 		link := sl.Find("time a")
-		art.URL = link.AttrOr("href", "")
-		timeStr := link.Text()
+		art.URL = strings.TrimSpace(link.AttrOr("href", ""))
+		timeStr := strings.TrimSpace(link.Text())
 
 		t, err := time.Parse("January 02, 2006", timeStr)
 		if err != nil {

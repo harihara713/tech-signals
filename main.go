@@ -15,6 +15,7 @@ func main() {
 		source.Google{},
 		source.Amazon{},
 		source.Stripe{},
+		source.Github{},
 	}
 
 	artStore := article.NewArticleStore()
