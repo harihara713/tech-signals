@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -26,6 +28,7 @@ func main() {
 
 	flag.Parse()
 
+	articles := article.NewArticleStore()
 	if selectedSource != "" {
 		selectedSource = strings.ToLower(selectedSource)
 		var validSource bool
@@ -38,7 +41,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		var articles *article.ArticleStore
 		// fetch all the blogs for a particular source
 		switch selectedSource {
 		case "meta":
@@ -53,11 +55,66 @@ func main() {
 			source.Stripe{}.Fetch(articles)
 		}
 
+		if articles == nil {
+			fmt.Println("\nTotal 0 articles fetched")
+			fmt.Println()
+			return
+		}
+
 		fmt.Printf("\nTotal %d articles fetched\n\n", len(*articles))
 		for _, art := range *articles {
 			fmt.Printf("[%s]\nTitle: %s\nUrl: %s\nPublished At: %v\nAuthor: %s\nSummary: %s\nTags: %s\n\n", art.Source, art.Title,
 				art.URL, art.PublishedAt, art.Author, art.Summary, strings.Join(art.Tags, ", "))
 		}
+
+		return
 	}
 
+	sources := []source.Source{
+		source.Amazon{}, source.Github{}, source.Google{}, source.Meta{}, source.Stripe{},
+	}
+
+	for _, s := range sources {
+		s.Fetch(articles)
+	}
+
+	if limit > 0 {
+		limitedResult := (*articles)[:limit]
+
+		for _, art := range limitedResult {
+			fmt.Printf("[%s]\nTitle: %s\nUrl: %s\nPublished At: %v\nAuthor: %s\nSummary: %s\nTags: %s\n\n", art.Source, art.Title,
+				art.URL, art.PublishedAt, art.Author, art.Summary, strings.Join(art.Tags, ", "))
+		}
+
+		return
+	}
+
+	if saveFilename != "" {
+		saveFilename = filepath.Base(saveFilename)
+		data, err := json.MarshalIndent(articles, "", " ")
+		if err != nil {
+			fmt.Println("Error: Failed to marshal the articles")
+			return
+		}
+
+		f, err := os.OpenFile(saveFilename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Println("Error: Failed to create the file")
+			return
+		}
+		defer f.Close()
+		if _, err := f.Write(data); err != nil {
+			fmt.Println("Error: Failed to write to the file")
+			return
+		}
+
+		fmt.Println("Successfully append to the file")
+		return
+	}
+
+	fmt.Printf("\nTotal %d articles fetched\n\n", len(*articles))
+	for _, art := range *articles {
+		fmt.Printf("[%s]\nTitle: %s\nUrl: %s\nPublished At: %v\nAuthor: %s\nSummary: %s\nTags: %s\n\n", art.Source, art.Title,
+			art.URL, art.PublishedAt, art.Author, art.Summary, strings.Join(art.Tags, ", "))
+	}
 }
