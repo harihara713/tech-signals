@@ -79,6 +79,10 @@ func main() {
 	}
 
 	if limit > 0 {
+		if limit > len(*articles) {
+			limit = len(*articles)
+		}
+
 		limitedResult := (*articles)[:limit]
 
 		for _, art := range limitedResult {
