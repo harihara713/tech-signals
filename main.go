@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/harihara713/tech-signals/article"
 	"github.com/harihara713/tech-signals/source"
@@ -44,15 +46,15 @@ func main() {
 		// fetch all the blogs for a particular source
 		switch selectedSource {
 		case "meta":
-			source.Meta{}.Fetch(articles)
+			fetchArticles(articles, source.Meta{})
 		case "google":
-			source.Google{}.Fetch(articles)
+			fetchArticles(articles, source.Google{})
 		case "amazon":
-			source.Amazon{}.Fetch(articles)
+			fetchArticles(articles, source.Amazon{})
 		case "github":
-			source.Github{}.Fetch(articles)
+			fetchArticles(articles, source.Github{})
 		case "stripe":
-			source.Stripe{}.Fetch(articles)
+			fetchArticles(articles, source.Stripe{})
 		}
 
 		if articles == nil {
@@ -74,9 +76,7 @@ func main() {
 		source.Amazon{}, source.Github{}, source.Google{}, source.Meta{}, source.Stripe{},
 	}
 
-	for _, s := range sources {
-		s.Fetch(articles)
-	}
+	fetchArticles(articles, sources...)
 
 	if limit > 0 {
 		if limit > len(*articles) {
@@ -120,5 +120,19 @@ func main() {
 	for _, art := range *articles {
 		fmt.Printf("[%s]\nTitle: %s\nUrl: %s\nPublished At: %v\nAuthor: %s\nSummary: %s\nTags: %s\n\n", art.Source, art.Title,
 			art.URL, art.PublishedAt, art.Author, art.Summary, strings.Join(art.Tags, ", "))
+	}
+}
+
+func fetchArticles(articles *article.ArticleStore, sources ...source.Source) {
+	// Check the internet connection
+	_, err := net.DialTimeout("tcp", "google.com:80", 3*time.Second)
+	if err != nil {
+		fmt.Printf("Error: Please check your connection")
+		return
+	}
+	// fetch the articles
+
+	for _, s := range sources {
+		s.Fetch(articles)
 	}
 }
