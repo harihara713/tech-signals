@@ -3,6 +3,7 @@ package source
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/harihara713/tech-signals/article"
@@ -10,7 +11,7 @@ import (
 
 type Source interface {
 	Name() string
-	Fetch(as *article.ArticleStore) error
+	Fetch(as *article.ArticleStore, wg *sync.WaitGroup) error
 }
 
 func transformToTimeString(str string) (string, error) {

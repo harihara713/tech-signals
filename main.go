@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/harihara713/tech-signals/article"
@@ -130,9 +131,13 @@ func fetchArticles(articles *article.ArticleStore, sources ...source.Source) {
 		fmt.Printf("Error: Please check your connection")
 		return
 	}
-	// fetch the articles
 
+	wg := &sync.WaitGroup{}
+
+	wg.Add(len(sources))
 	for _, s := range sources {
-		s.Fetch(articles)
+		go s.Fetch(articles, wg)
 	}
+
+	wg.Wait()
 }

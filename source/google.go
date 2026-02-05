@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -18,11 +19,12 @@ func (g Google) Name() string {
 	return "Google"
 }
 
-func (g Google) Fetch(as *article.ArticleStore) error {
+func (g Google) Fetch(as *article.ArticleStore, wg *sync.WaitGroup) error {
 	url := "https://developers.googleblog.com/search/?technology_categories=Web"
 	resp, err := http.Get(url)
 	if err != nil {
 		slog.Error("Google: Error getting response", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -30,12 +32,14 @@ func (g Google) Fetch(as *article.ArticleStore) error {
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Error("Google: Error response", "status", resp.StatusCode)
+		wg.Done()
 		return fmt.Errorf("Google blogs response status: '%d'", resp.StatusCode)
 	}
 	// extract the articles details
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		slog.Error("Google: Error parsing the page", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -72,5 +76,6 @@ func (g Google) Fetch(as *article.ArticleStore) error {
 		*as = append(*as, art)
 	})
 
+	wg.Done()
 	return nil
 }

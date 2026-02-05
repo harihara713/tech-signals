@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -18,11 +19,12 @@ func (m Meta) Name() string {
 	return "Meta"
 }
 
-func (m Meta) Fetch(as *article.ArticleStore) error {
+func (m Meta) Fetch(as *article.ArticleStore, wg *sync.WaitGroup) error {
 	url := "https://engineering.fb.com/category/open-source/"
 	resp, err := http.Get(url)
 	if err != nil {
 		slog.Error("Meta: Error getting response", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -30,12 +32,14 @@ func (m Meta) Fetch(as *article.ArticleStore) error {
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Error("Meta: Error response", "status", resp.StatusCode)
+		wg.Done()
 		return fmt.Errorf("Meta blogs response status: '%d'", resp.StatusCode)
 	}
 	// extract the articles details
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		slog.Error("Meta: Error parsing the page", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -72,5 +76,6 @@ func (m Meta) Fetch(as *article.ArticleStore) error {
 		*as = append(*as, art)
 	})
 
+	wg.Done()
 	return nil
 }

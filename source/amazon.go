@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -18,11 +19,12 @@ func (a Amazon) Name() string {
 	return "Amazon"
 }
 
-func (a Amazon) Fetch(as *article.ArticleStore) error {
+func (a Amazon) Fetch(as *article.ArticleStore, wg *sync.WaitGroup) error {
 	url := "https://aws.amazon.com/blogs/architecture/"
 	resp, err := http.Get(url)
 	if err != nil {
 		slog.Error("Amazon: Error getting response", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -30,12 +32,14 @@ func (a Amazon) Fetch(as *article.ArticleStore) error {
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Error("Amazon: Error response", "status", resp.StatusCode)
+		wg.Done()
 		return fmt.Errorf("Amazon blogs response status: '%d'", resp.StatusCode)
 	}
 	// extract the articles details
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		slog.Error("Amazon: Error parsing the page", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -76,5 +80,6 @@ func (a Amazon) Fetch(as *article.ArticleStore) error {
 		*as = append(*as, art)
 	})
 
+	wg.Done()
 	return nil
 }

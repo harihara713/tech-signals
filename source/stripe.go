@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -18,11 +19,12 @@ func (s Stripe) Name() string {
 	return "Stripe"
 }
 
-func (s Stripe) Fetch(as *article.ArticleStore) error {
+func (s Stripe) Fetch(as *article.ArticleStore, wg *sync.WaitGroup) error {
 	url := "https://stripe.com/blog/engineering"
 	resp, err := http.Get(url)
 	if err != nil {
 		slog.Error("Stripe: Error getting response", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -30,12 +32,14 @@ func (s Stripe) Fetch(as *article.ArticleStore) error {
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Error("Stripe: Error response", "status", resp.StatusCode)
+		wg.Done()
 		return fmt.Errorf("Stripe blogs response status: '%d'", resp.StatusCode)
 	}
 	// extract the articles details
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		slog.Error("Stripe: Error parsing the page", "err", err)
+		wg.Done()
 		return err
 	}
 
@@ -62,5 +66,6 @@ func (s Stripe) Fetch(as *article.ArticleStore) error {
 		*as = append(*as, art)
 	})
 
+	wg.Done()
 	return nil
 }
